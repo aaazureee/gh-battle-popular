@@ -1,4 +1,10 @@
 # gh-battle-popular
+## Dev
+```
+1. git clone https://github.com/aaazureee/gh-battle-popular.git
+2. npm install
+3. npm start
+```
 ## Overview 
 Compare GitHub stats and show popular repos (language based)
 ## Tools
