@@ -1,32 +1,33 @@
-import axios from 'axios';
 const id = 'YOUR_CLIENT_ID';
 const sec = 'YOUR_SECRET_ID';
 const params = `?client_id=${id}&client_secret=${sec}`;
 
-async function getProfile(username) {
-  const profile = await axios.get(`https://api.github.com/users/${username}${params}`);
-  return profile.data;
+async function getProfile (username) {
+  const response = await fetch(`https://api.github.com/users/${username}${params}`);
+
+  return await response.json();
 }
 
-function getRepos(username) {
-  return axios.get(`https://api.github.com/users/${username}/repos${params}&per_page=100`);
+async function getRepos (username) {
+  const response = await fetch(`https://api.github.com/users/${username}/repos${params}&per_page=100`);
+  return await response.json();
 }
 
-function getStarCount(repos) {
-  return repos.data.reduce((count, { stargazers_count }) => count + stargazers_count, 0);
+function getStarCount (repos) {
+  return repos.reduce((count, { stargazers_count }) => count +stargazers_count, 0);
 }
 
-function calculateScore({ followers }, repos) {
+function calculateScore ({ followers }, repos) {
   return (followers * 3) + getStarCount(repos);
 }
 
-function handleErr(error) {
+function handleError (error) {
   console.warn(error);
   return null;
 }
 
-async function getUserData(player) {
-  const [profile, repos] = await Promise.all([
+async function getUserData (player) {
+  const [ profile, repos ] = await Promise.all([
     getProfile(player),
     getRepos(player)
   ]);
@@ -37,22 +38,26 @@ async function getUserData(player) {
   };
 }
 
-function sortPlayers(players) {
-  return players.sort((a, b) => b.score - a.score);
+function sortPlayers (players) {
+  return players.sort((a,b) => b.score - a.score);
 }
 
-export async function battle(players) {
+export async function battle (players) {
   const results = await Promise.all(players.map(getUserData))
-    .catch(handleErr);
+    .catch(handleError);
+
   return results === null
     ? results
     : sortPlayers(results);
 }
 
-export async function fetchPopularRepos(language) {
+export async function fetchPopularRepos (language) {
   const encodedURI = window.encodeURI(`https://api.github.com/search/repositories?q=stars:>1+language:${language}&sort=stars&order=desc&type=Repositories`);
 
-  const { data } = await axios.get(encodedURI)
-    .catch(handleErr);
-  return data.items;
+  const response = await fetch(encodedURI)
+    .catch(handleError);
+
+  const repos = await response.json();
+
+  return repos.items;
 }
